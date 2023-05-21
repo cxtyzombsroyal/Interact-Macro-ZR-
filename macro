@@ -1,0 +1,56 @@
+import time
+import threading
+import keyboard
+
+is_macro_running = False
+macro_value = 0.05  # Default macro value
+
+def pick_up_items(key):
+    global is_macro_running, macro_value
+    stop_pressed = False  
+    while is_macro_running and not stop_pressed:
+        if keyboard.is_pressed(key):
+            continue
+        keyboard.press(key)
+        keyboard.release(key)
+        time.sleep(macro_value)
+        if keyboard.is_pressed("esc"):  # Check if the stop key (Esc) is pressed
+            stop_pressed = True
+            is_macro_running = False
+            print("Macro stopped")
+
+def start_macro():
+    global is_macro_running, macro_value
+    selected_key = input("Enter the key to press: ")
+    if selected_key:
+        macro_value_input = float(input("Enter the macro value (time sleep) [0 - 0.1]: "))
+        if 0.0 < macro_value_input <= 0.1:
+            macro_value = macro_value_input
+            print(f"Macro started. Pressing '{selected_key}' to pick up items with macro value {macro_value}.")
+            is_macro_running = True
+            threading.Thread(target=pick_up_items, args=(selected_key,)).start()
+        else:
+            print("Invalid macro value. Please choose a value between 0 and 0.1.")
+
+# Start/Stop Macro
+while True:
+    command = input("Enter 'start' to start the macro, 'stop' to stop the macro, or 'exit' to quit: ")
+    if command == "start":
+        if not is_macro_running:
+            start_macro()
+        else:
+            print("Macro is already running. Please stop it first.")
+    elif command == "stop":
+        if is_macro_running:
+            is_macro_running = False
+            print("Macro stopped.")
+        else:
+            print("Macro is not currently running.")
+    elif command == "exit":
+        if is_macro_running:
+            is_macro_running = False
+            print("Macro stopped.")
+        print("Exiting the program. Bye!")
+        break
+    else:
+        print("Invalid command. Try again.")
